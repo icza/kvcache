@@ -4,8 +4,8 @@ package kvcache
 
 // Cache describes the operations of the key-value cache.
 type Cache interface {
-	// Get returns value associated with the given key.
-	// nil is returned if the key is not found.
+	// Get returns the value associated with the given key.
+	// nil slice and error is returned if the key is not found.
 	Get(key string) ([]byte, error)
 
 	// Put puts a new key-value pair into the cache.
@@ -30,7 +30,7 @@ type Cache interface {
 	Close() error
 }
 
-// Stat includes basic statistics about the cache.
+// Stat wraps basic statistics about the cache.
 type Stat struct {
 	// Len is the number of key-value pairs in the Cache (same as Cache.Len()).
 	Len int
@@ -39,7 +39,8 @@ type Stat struct {
 	// it is the sum of IndexSize and DataSize.
 	StorageSize int64
 
-	// IndexSize is the total size of the keys (plus some metadata) in bytes.
+	// IndexSize is the total size of the keys (plus the version plus
+	// 8 bytes of metadata per key) in bytes.
 	IndexSize int64
 
 	// DataSize is the total size of the values in bytes.

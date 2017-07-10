@@ -67,10 +67,9 @@ type cache struct {
 }
 
 // New creates a new Cache, using the given folder for persisting the data.
-// You can also provide a version of the data. If a persisted cache already exists,
-// and its version is different from the given one, it will be cleared before
-// return.
-// The cache will also be cleared if already exists but is invalid.
+// You also have to provide the version of the data. If a persisted cache already
+// exists, and its version is different from this, it will be cleared
+// before return.
 //
 // ErrKeySize is returned if version is too long (>KeySizeLimit).
 func New(folder, version string) (cch Cache, err error) {
