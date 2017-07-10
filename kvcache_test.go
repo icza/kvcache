@@ -112,3 +112,35 @@ func TestVersionMismatch(t *testing.T) {
 	eq(nil, c.Close())
 	os.RemoveAll(folder)
 }
+
+func TestStat(t *testing.T) {
+	eq := mighty.Eq(t)
+
+	folder := filepath.Join(baseFolder, t.Name())
+
+	c, err := New(folder, "v1.0")
+	eq(nil, err)
+
+	s, err := c.Stat()
+	eq(nil, err)
+	eq(0, s.Len)
+	eq(int64(6), s.IndexSize) // version (2+4)
+	eq(int64(0), s.DataSize)
+	eq(int64(6), s.StorageSize)
+	eq(s.StorageSize, s.IndexSize+s.DataSize)
+
+	eq(nil, c.Put("a", []byte("Aa")))
+	eq(nil, c.Put("bc", []byte("Bb")))
+
+	s2, err := c.Stat()
+	eq(nil, err)
+	eq(2, s2.Len)
+	eq(int64(29), s2.IndexSize) // version (2+4) + 2*10 (key len 2, pos 4, size 4) + 1 ("a" len) + 2 ("bc" len)
+	eq(int64(4), s2.DataSize)
+	eq(int64(33), s2.StorageSize)
+	eq(s2.StorageSize, s2.IndexSize+s2.DataSize)
+
+	eq(nil, c.Close())
+
+	os.RemoveAll(folder)
+}

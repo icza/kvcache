@@ -22,6 +22,26 @@ type Cache interface {
 	// Len returns the number of key-value pairs in the Cache.
 	Len() int
 
+	// Stat returns some basic statistics about the cache,
+	// including the occupied storage size of the cache in bytes.
+	Stat() (*Stat, error)
+
 	// Close closes the cache, releases any associated resources.
 	Close() error
+}
+
+// Stat includes basic statistics about the cache.
+type Stat struct {
+	// Len is the number of key-value pairs in the Cache (same as Cache.Len()).
+	Len int
+
+	// StorageSize is the total storage size of the cache in bytes,
+	// it is the sum of IndexSize and DataSize.
+	StorageSize int64
+
+	// IndexSize is the total size of the keys (plus some metadata) in bytes.
+	IndexSize int64
+
+	// DataSize is the total size of the values in bytes.
+	DataSize int64
 }

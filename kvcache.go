@@ -194,7 +194,7 @@ func (c *cache) Put(key string, value []byte) error {
 		return ErrKeyExists
 	}
 
-	// Write value into data file
+	// Write value into data file, at the end:
 	pos, err := c.dataf.Seek(0, 2)
 	if err != nil {
 		return err
@@ -268,6 +268,27 @@ func (c *cache) Len() int {
 	defer c.Unlock()
 
 	return len(c.indexMap)
+}
+
+// Stat implements Cache.Stat().
+func (c *cache) Stat() (*Stat, error) {
+	c.Lock()
+	defer c.Unlock()
+
+	s := &Stat{Len: len(c.indexMap)}
+
+	var err error
+	if s.IndexSize, err = c.indexf.Seek(0, 1); err != nil { // Stay at current offset (always the end)
+		return nil, err
+	}
+
+	if s.DataSize, err = c.dataf.Seek(0, 2); err != nil { // Seek to the end
+		return nil, err
+	}
+
+	s.StorageSize = s.IndexSize + s.DataSize
+
+	return s, nil
 }
 
 // Close implements Cache.Close().
