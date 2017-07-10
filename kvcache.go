@@ -127,12 +127,7 @@ func New(folder, version string) (result Cache, err error) {
 		if _, err = io.ReadFull(c.indexf, existingVer); err != nil {
 			return
 		}
-		if version != string(existingVer) {
-			if err = c.Clear(); err != nil {
-				return
-			}
-			doClear = true
-		}
+		doClear = version != string(existingVer)
 	}
 
 	if doClear {
@@ -195,12 +190,12 @@ func (c *cache) Put(key string, value []byte) error {
 	defer c.Unlock()
 
 	vi, ok := c.indexMap[key]
-	if !ok {
+	if ok {
 		return ErrKeyExists
 	}
 
 	// Write value into data file
-	pos, err := c.dataf.Seek(2, 0)
+	pos, err := c.dataf.Seek(0, 2)
 	if err != nil {
 		return err
 	}
