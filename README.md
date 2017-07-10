@@ -27,3 +27,13 @@ Since element removal is not supported, the usability of this cache implementati
 is limited, but in exchange it provides very compact storage: basically the
 required storage size equals to the size of keys and the associated values
 (plus a very tiny overhead).
+
+## Implementation restrictions
+
+- Length of version and keys must be less than 64 KB (1<<16 - 1), exposed via KeySizeLimit.
+
+- Total data size (total size of values) must not exceed 4 GB (1<<32 - 1).
+
+## Example projects using this
+
+- https://github.com/icza/repmastered

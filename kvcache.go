@@ -12,11 +12,26 @@ import (
 )
 
 const (
+	// KeySizeLimit is the max allowed length for keys and the version string
+	KeySizeLimit = 1<<16 - 1
+)
+
+const (
 	// indexName is the name of the index file
 	indexName = "index"
+
 	// dataName is the name of the data file
 	dataName = "data"
 )
+
+// valueInfo describes a value in the index map.
+type valueInfo struct {
+	// Pos is the byte position of the data
+	Pos uint32
+
+	// Size is the byte-size of the data
+	Size uint32
+}
 
 // cache is the implementation of the Cache interface.
 type cache struct {
@@ -31,6 +46,9 @@ type cache struct {
 
 	// dataf is the data file
 	dataf *os.File
+
+	// indexMap is the in-memory index
+	indexMap map[string]valueInfo
 }
 
 // New creates a new Cache, using the given folder for persisting the data.
@@ -39,10 +57,8 @@ type cache struct {
 // return.
 // The cache will also be cleared if already exists but is invalid.
 func New(folder, version string) (result Cache, err error) {
-	// Safety check:
-	const versionLimit = 1 << 10 // 1KB
-	if len(version) > versionLimit {
-		return nil, fmt.Errorf("too long version, limit is %d", versionLimit)
+	if len(version) > KeySizeLimit {
+		return nil, fmt.Errorf("too long version, limit is %d", KeySizeLimit)
 	}
 
 	// Make sure folder exists:
@@ -51,7 +67,8 @@ func New(folder, version string) (result Cache, err error) {
 	}
 
 	c := &cache{
-		version: version,
+		version:  version,
+		indexMap: map[string]valueInfo{},
 	}
 	defer func() {
 		if err != nil {
@@ -84,13 +101,9 @@ func New(folder, version string) (result Cache, err error) {
 	doClear := stat.Size() == 0
 	if !doClear {
 		// Read and check existing version:
-		var vlen int32
+		var vlen uint16
 		if err = binary.Read(c.indexf, binary.LittleEndian, &vlen); err != nil {
 			return
-		}
-		// Safety limit:
-		if vlen > versionLimit {
-			vlen = versionLimit
 		}
 		existingVer := make([]byte, vlen)
 		if _, err = io.ReadFull(c.indexf, existingVer); err != nil {
@@ -108,6 +121,29 @@ func New(folder, version string) (result Cache, err error) {
 		if err = c.Clear(); err != nil {
 			return
 		}
+	}
+
+	// Read index into memory:
+	for {
+		var keyLen uint16
+		if err = binary.Read(c.indexf, binary.LittleEndian, &keyLen); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return
+		}
+		key := make([]byte, keyLen)
+		if _, err = io.ReadFull(c.indexf, key); err != nil {
+			return
+		}
+		vi := valueInfo{}
+		if err = binary.Read(c.indexf, binary.LittleEndian, &vi.Pos); err != nil {
+			return
+		}
+		if err = binary.Read(c.indexf, binary.LittleEndian, &vi.Size); err != nil {
+			return
+		}
+		c.indexMap[string(key)] = vi
 	}
 
 	return c, nil
@@ -145,7 +181,7 @@ func (c *cache) Clear() error {
 	}
 
 	// Write version: length + version bytes
-	if err := binary.Write(c.indexf, binary.LittleEndian, len(c.version)); err != nil {
+	if err := binary.Write(c.indexf, binary.LittleEndian, uint16(len(c.version))); err != nil {
 		return err
 	}
 	if _, err := c.indexf.WriteString(c.version); err != nil {
