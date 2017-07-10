@@ -262,6 +262,14 @@ func (c *cache) Clear() error {
 	return nil
 }
 
+// Len implements Cache.Len().
+func (c *cache) Len() int {
+	c.Lock()
+	defer c.Unlock()
+
+	return len(c.indexMap)
+}
+
 // Close implements Cache.Close().
 func (c *cache) Close() error {
 	var err1, err2 error

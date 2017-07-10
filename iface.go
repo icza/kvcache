@@ -19,6 +19,9 @@ type Cache interface {
 	// Clear removes all key-value pairs from the cache.
 	Clear() error
 
+	// Len returns the number of key-value pairs in the Cache.
+	Len() int
+
 	// Close closes the cache, releases any associated resources.
 	Close() error
 }
