@@ -2,7 +2,7 @@
 
 package kvcache
 
-// Cache describes the key-value cache.
+// Cache describes the operations of the key-value cache.
 type Cache interface {
 	// Get returns value associated with the given key.
 	// nil is returned if the key is not found.

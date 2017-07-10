@@ -73,7 +73,7 @@ type cache struct {
 // The cache will also be cleared if already exists but is invalid.
 //
 // ErrKeySize is returned if version is too long (>KeySizeLimit).
-func New(folder, version string) (result Cache, err error) {
+func New(folder, version string) (cch Cache, err error) {
 	if len(version) > KeySizeLimit {
 		return nil, ErrKeySize
 	}
