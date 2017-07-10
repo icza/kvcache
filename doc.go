@@ -26,9 +26,11 @@ basically the required storage size equals to the size of keys and the associate
 
 Implementation restrictions
 
-- Length of version and keys must be less than 64 KB (1<<16 - 1), exposed via KeySizeLimit.
+- Length of version and keys must be less than 64 KB (1<<16 - 1),
+exposed as KeySizeLimit.
 
-- Total data size (total size of values) must not exceed 4 GB (1<<32 - 1).
+- Total data size (total size of values) must not exceed 4 GB (1<<32 - 1),
+exposed as DataSizeLimit.
 
 */
 package kvcache

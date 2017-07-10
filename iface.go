@@ -11,7 +11,9 @@ type Cache interface {
 	// Put puts a new key-value pair into the cache.
 	//
 	// ErrKeyExists is returned if key is already in the case.
-	// ErrKeySizeLimitExceeded is returned if key is too long (> KeySizeLimit).
+	// ErrKeySize is returned if key is too long (> KeySizeLimit).
+	// ErrDataSize is returned if putting the value would increase total
+	// data size over the limit (DataSizeLimit).
 	Put(key string, value []byte) error
 
 	// Clear removes all key-value pairs from the cache.

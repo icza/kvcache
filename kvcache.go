@@ -14,6 +14,9 @@ import (
 const (
 	// KeySizeLimit is the max allowed length for keys and the version string
 	KeySizeLimit = 1<<16 - 1
+
+	// DataSizeLimit is the max allowed total data size
+	DataSizeLimit = 1<<32 - 1
 )
 
 const (
@@ -28,9 +31,12 @@ var (
 	// ErrKeyExists is returned when attempting to put an existing key into the cache
 	ErrKeyExists = errors.New("key already in cache")
 
-	// ErrKeySizeLimitExceeded is returned when attempting to put a too long key
-	// into the cache
-	ErrKeySizeLimitExceeded = errors.New("key too long")
+	// ErrKeySize is returned when attempting to put a too long key into the cache
+	ErrKeySize = errors.New("key too long")
+
+	// ErrDataSize is returned when attempting to put a value into the cache
+	// which would raise total data size over the limit (DataSizeLimit)
+	ErrDataSize = errors.New("total data too big")
 )
 
 // valueInfo describes a value in the index map.
@@ -66,10 +72,10 @@ type cache struct {
 // return.
 // The cache will also be cleared if already exists but is invalid.
 //
-// ErrKeySizeLimitExceeded is returned if version is too long (>KeySizeLimit).
+// ErrKeySize is returned if version is too long (>KeySizeLimit).
 func New(folder, version string) (result Cache, err error) {
 	if len(version) > KeySizeLimit {
-		return nil, ErrKeySizeLimitExceeded
+		return nil, ErrKeySize
 	}
 
 	// Make sure folder exists:
@@ -182,7 +188,7 @@ func (c *cache) Get(key string) ([]byte, error) {
 // Put implements Cache.Put().
 func (c *cache) Put(key string, value []byte) error {
 	if len(key) > KeySizeLimit {
-		return ErrKeySizeLimitExceeded
+		return ErrKeySize
 	}
 
 	c.Lock()
@@ -198,6 +204,10 @@ func (c *cache) Put(key string, value []byte) error {
 	if err != nil {
 		return err
 	}
+	if pos+int64(len(value)) > DataSizeLimit {
+		return ErrDataSize
+	}
+
 	vi.Pos = uint32(pos)
 	vi.Size = uint32(len(value))
 
