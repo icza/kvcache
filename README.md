@@ -32,9 +32,9 @@ create / init time differs, cache will be auto-cleared.
 ## Notes
 
 Since element removal and changing is not supported, the usability of this cache
-implementation is limited, but in exchange it provides very compact storage:
-basically the required storage size equals to the size of keys and the associated values
-(plus a very tiny overhead).
+implementation is limited, but in exchange it provides fast access and very
+compact storage: basically the required storage size equals to the total size
+of values and total size of keys (plus a tiny overhead per key).
 
 ## Implementation restrictions
 
