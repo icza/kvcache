@@ -27,6 +27,7 @@ func TestPersisting(t *testing.T) {
 	expDeq([]byte("Aa"))(c.Get("a"))
 	expDeq([]byte("Bb"))(c.Get("b"))
 
+	eq(nil, c.Close())
 	os.RemoveAll(folder)
 }
 
@@ -73,7 +74,6 @@ func TestClear(t *testing.T) {
 	expDeq([]byte(nil))(c.Get("b"))
 
 	eq(nil, c.Close())
-
 	os.RemoveAll(folder)
 }
 
@@ -92,5 +92,6 @@ func TestVersionMismatch(t *testing.T) {
 
 	expDeq([]byte(nil))(c.Get("a"))
 
+	eq(nil, c.Close())
 	os.RemoveAll(folder)
 }
