@@ -13,10 +13,10 @@ import (
 
 const (
 	// KeySizeLimit is the max allowed length for keys and the version string
-	KeySizeLimit = 1<<16 - 1
+	KeySizeLimit = 1<<16 - 1 // 64 KB
 
 	// DataSizeLimit is the max allowed total data size
-	DataSizeLimit = 1<<32 - 1
+	DataSizeLimit = 1<<32 - 1 // 4 GB
 )
 
 const (
