@@ -31,15 +31,19 @@ func TestPersisting(t *testing.T) {
 	os.RemoveAll(folder)
 }
 
-func TestPut(t *testing.T) {
-	eq := mighty.Eq(t)
+func TestPutGet(t *testing.T) {
+	eq, expDeq := mighty.Eq(t), mighty.ExpDeq(t)
 
 	folder := filepath.Join(baseFolder, t.Name())
 	c, err := New(folder, "v1.0")
 	eq(nil, err)
 
+	expDeq([]byte(nil))(c.Get("a"))
 	eq(nil, c.Put("a", []byte("A")))
+	expDeq([]byte("A"))(c.Get("a"))
+
 	eq(ErrKeyExists, c.Put("a", []byte("A")))
+	expDeq([]byte("A"))(c.Get("a"))
 
 	longKey := make([]byte, KeySizeLimit+1)
 	eq(ErrKeySize, c.Put(string(longKey), []byte("A")))
