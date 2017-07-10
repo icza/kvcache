@@ -9,7 +9,8 @@ Simple, optimized, embedded, persistent (file-based) key-value cache.
 ## Features
 
 - Very simple interface. Basically just a Get and a Put operation. Does not support
-removing elements, but it supports removing all elements (reset) with the Clear method.
+changing or removing elements, but it supports removing all elements (reset)
+with the Clear method.
 
 - Optimized. Keys are kept in memory for fast lookups.
 
@@ -23,9 +24,9 @@ creation time.
 
 ## Notes
 
-Since element removal is not supported, the usability of this cache implementation
-is limited, but in exchange it provides very compact storage: basically the
-required storage size equals to the size of keys and the associated values
+Since element removal and changing is not supported, the usability of this cache
+implementation is limited, but in exchange it provides very compact storage:
+basically the required storage size equals to the size of keys and the associated values
 (plus a very tiny overhead).
 
 ## Implementation restrictions

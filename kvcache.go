@@ -4,7 +4,7 @@ package kvcache
 
 import (
 	"encoding/binary"
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -24,6 +24,15 @@ const (
 	dataName = "data"
 )
 
+var (
+	// ErrKeyExists is returned when attempting to put an existing key into the cache
+	ErrKeyExists = errors.New("key already in cache")
+
+	// ErrKeySizeLimitExceeded is returned when attempting to put a too long key
+	// into the cache
+	ErrKeySizeLimitExceeded = errors.New("key too long")
+)
+
 // valueInfo describes a value in the index map.
 type valueInfo struct {
 	// Pos is the byte position of the data
@@ -36,7 +45,7 @@ type valueInfo struct {
 // cache is the implementation of the Cache interface.
 type cache struct {
 	// mutex to protect concurrent access
-	sync.RWMutex
+	sync.Mutex
 
 	// version of the data in the cache
 	version string
@@ -56,9 +65,11 @@ type cache struct {
 // and its version is different from the given one, it will be cleared before
 // return.
 // The cache will also be cleared if already exists but is invalid.
+//
+// ErrKeySizeLimitExceeded is returned if version is too long (>KeySizeLimit).
 func New(folder, version string) (result Cache, err error) {
 	if len(version) > KeySizeLimit {
-		return nil, fmt.Errorf("too long version, limit is %d", KeySizeLimit)
+		return nil, ErrKeySizeLimitExceeded
 	}
 
 	// Make sure folder exists:
@@ -67,6 +78,7 @@ func New(folder, version string) (result Cache, err error) {
 	}
 
 	c := &cache{
+		Mutex:    sync.Mutex{},
 		version:  version,
 		indexMap: map[string]valueInfo{},
 	}
@@ -151,13 +163,65 @@ func New(folder, version string) (result Cache, err error) {
 
 // Get implements Cache.Get().
 func (c *cache) Get(key string) ([]byte, error) {
-	// TODO
-	return nil, nil
+	c.Lock()
+	defer c.Unlock()
+
+	vi, ok := c.indexMap[key]
+	if !ok {
+		return nil, nil
+	}
+
+	value := make([]byte, vi.Size)
+	if _, err := c.dataf.ReadAt(value, int64(vi.Pos)); err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
 
 // Put implements Cache.Put().
 func (c *cache) Put(key string, value []byte) error {
-	// TODO
+	if len(key) > KeySizeLimit {
+		return ErrKeySizeLimitExceeded
+	}
+
+	c.Lock()
+	defer c.Unlock()
+
+	vi, ok := c.indexMap[key]
+	if !ok {
+		return ErrKeyExists
+	}
+
+	// Write value into data file
+	pos, err := c.dataf.Seek(2, 0)
+	if err != nil {
+		return err
+	}
+	vi.Pos = uint32(pos)
+	vi.Size = uint32(len(value))
+
+	if _, err = c.dataf.Write(value); err != nil {
+		return err
+	}
+
+	// Write index entry
+	// Index file position is always at the end
+	if err = binary.Write(c.indexf, binary.LittleEndian, uint16(len(key))); err != nil {
+		return err
+	}
+	if _, err = c.indexf.WriteString(key); err != nil {
+		return err
+	}
+	if err = binary.Write(c.indexf, binary.LittleEndian, &vi.Pos); err != nil {
+		return err
+	}
+	if err = binary.Write(c.indexf, binary.LittleEndian, &vi.Size); err != nil {
+		return err
+	}
+
+	c.indexMap[key] = vi
+
 	return nil
 }
 
@@ -187,6 +251,8 @@ func (c *cache) Clear() error {
 	if _, err := c.indexf.WriteString(c.version); err != nil {
 		return err
 	}
+
+	c.indexMap = map[string]valueInfo{}
 
 	return nil
 }
