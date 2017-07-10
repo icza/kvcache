@@ -16,5 +16,12 @@ creation time.
 
 - Supports concurrent access.
 
+Notes
+
+Since element removal is not supported, the usability of this cache implementation
+is limited, but in exchange it provides very compact storage: basically the
+required storage size equals to the size of keys and the associated values
+(plus a very tiny overhead).
+
 */
 package kvcache
