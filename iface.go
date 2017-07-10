@@ -18,6 +18,5 @@ type Cache interface {
 	Clear() error
 
 	// Close closes the cache, releases any associated resources.
-	// Close is idempotent (may be called multiple times).
 	Close() error
 }
