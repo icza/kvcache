@@ -5,7 +5,7 @@ package kvcache
 // Cache describes the operations of the key-value cache.
 type Cache interface {
 	// Get returns the value associated with the given key.
-	// nil slice and error is returned if the key is not found.
+	// nil slice and nil error is returned if the key is not found.
 	Get(key string) ([]byte, error)
 
 	// Put puts a new key-value pair into the cache.
