@@ -18,6 +18,7 @@ func TestPersisting(t *testing.T) {
 	c, err := New(folder, "v1.0")
 	eq(nil, err)
 	eq(0, c.Len())
+	eq(folder, c.Folder())
 	eq(nil, c.Put("a", []byte("Aa")))
 	eq(nil, c.Put("b", []byte("Bb")))
 	eq(2, c.Len())
