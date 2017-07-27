@@ -19,6 +19,9 @@ type Cache interface {
 	// Clear removes all key-value pairs from the cache.
 	Clear() error
 
+	// Folder returns the folder of the cache where data is persisted.
+	Folder() string
+
 	// Len returns the number of key-value pairs in the Cache.
 	Len() int
 

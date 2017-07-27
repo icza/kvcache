@@ -53,6 +53,9 @@ type cache struct {
 	// mutex to protect concurrent access
 	sync.Mutex
 
+	// folder of the cache where data is persisted
+	folder string
+
 	// version of the data in the cache
 	version string
 
@@ -84,6 +87,7 @@ func New(folder, version string) (cch Cache, err error) {
 
 	c := &cache{
 		Mutex:    sync.Mutex{},
+		folder:   folder,
 		version:  version,
 		indexMap: map[string]valueInfo{},
 	}
@@ -259,6 +263,11 @@ func (c *cache) Clear() error {
 	c.indexMap = map[string]valueInfo{}
 
 	return nil
+}
+
+// Folder implements Cache.Folder()
+func (c *cache) Folder() string {
+	return c.folder
 }
 
 // Len implements Cache.Len().
