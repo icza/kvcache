@@ -38,7 +38,7 @@ of values and total size of keys (plus a tiny overhead per key).
 
 ## Implementation restrictions
 
-- Length of the data version and keys must be less than 64 KB (`1<<16 - 1`),
+- Length of the data version and (individual) keys must be less than 64 KB (`1<<16 - 1`),
 exposed as `KeySizeLimit`.
 - Total data size (total size of values) must not exceed 4 GB (`1<<32 - 1`),
 exposed as `DataSizeLimit`.
